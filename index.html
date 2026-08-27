@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Календарь мероприятий 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Mono&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+
+:root{
+  --bg:#EEF1F6;
+  --surface:#FFFFFF;
+  --surface-2:#F5F7FB;
+  --ink:#141A2A;
+  --ink-soft:#4B5468;
+  --ink-faint:#8992A8;
+  --line:#E1E5EE;
+  --line-strong:#CDD3E1;
+
+  --accent:#1F3A63;
+  --accent-dark:#132845;
+  --accent-soft:#E6EBF4;
+
+  --green:#1D7A45;
+  --green-bg:#E2F2E8;
+  --amber:#AD7809;
+  --amber-bg:#FAF0D8;
+  --red:#B13A2C;
+  --red-bg:#FAE2DD;
+  --neutral:#8B93A6;
+  --neutral-bg:#EAECF1;
+
+  --radius:12px;
+  --radius-sm:7px;
+  --shadow: 0 1px 2px rgba(15,23,42,.05), 0 10px 24px rgba(15,23,42,.07);
+
+  --font-body:'PT Sans','Segoe UI',Roboto,Arial,sans-serif;
+  --font-mono:'PT Mono','SFMono-Regular',Consolas,monospace;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+
+html{ font-size:16px; }
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:var(--accent); }
+
+.wrap{ max-width:1180px; margin:0 auto; padding:0 clamp(1rem,3vw,2rem) 4rem; }
+
+/* ---------- top band ---------- */
+.topband{
+  background:linear-gradient(155deg, var(--accent-dark), var(--accent) 70%);
+  color:#fff;
+  padding:2.4rem clamp(1rem,3vw,2rem) 4rem;
+}
+.topband__inner{ max-width:1180px; margin:0 auto; }
+.eyebrow{
+  font-family:var(--font-mono);
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-size:.72rem;
+  color:rgba(255,255,255,.62);
+  margin:0 0 .7rem;
+}
+.topband h1{
+  font-family:var(--font-body);
+  font-weight:700;
+  font-size:clamp(1.7rem,3vw,2.3rem);
+  margin:0 0 .6rem;
+  letter-spacing:-.01em;
+}
+.topband__lead{
+  margin:0;
+  color:rgba(255,255,255,.82);
+  font-size:.95rem;
+  max-width:60ch;
+}
+.topband__meta{
+  margin-top:.9rem;
+  font-family:var(--font-mono);
+  font-size:.75rem;
+  color:rgba(255,255,255,.55);
+}
+
+/* ---------- KPI cards (overlap the band) ---------- */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:.8rem;
+  margin-top:-3.1rem;
+  margin-bottom:1.6rem;
+}
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:.9rem 1rem;
+  text-align:left;
+  cursor:pointer;
+  font:inherit;
+  color:var(--ink);
+  border-top:3px solid var(--line-strong);
+  transition:transform .12s ease, border-color .12s ease;
+}
+.kpi:hover{ transform:translateY(-2px); }
+.kpi:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.kpi__num{ font-family:var(--font-mono); font-size:1.5rem; font-weight:700; line-height:1; display:block; }
+.kpi__label{ font-size:.78rem; color:var(--ink-soft); margin-top:.35rem; display:block; }
+.kpi.is-active{ border-top-color:var(--accent); }
+.kpi[data-key="green"]{ border-top-color:var(--green); }
+.kpi[data-key="amber"]{ border-top-color:var(--amber); }
+.kpi[data-key="red"]{ border-top-color:var(--red); }
+.kpi[data-key="none"]{ border-top-color:var(--neutral); }
+.kpi.is-active[data-key="green"]{ background:var(--green-bg); }
+.kpi.is-active[data-key="amber"]{ background:var(--amber-bg); }
+.kpi.is-active[data-key="red"]{ background:var(--red-bg); }
+.kpi.is-active[data-key="none"]{ background:var(--neutral-bg); }
+.kpi.is-active[data-key="all"]{ background:var(--accent-soft); }
+
+@media (max-width:760px){
+  .kpis{ grid-template-columns:repeat(2, 1fr); margin-top:-2.2rem; }
+}
+
+/* ---------- toolbar ---------- */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+}
+.toolbar{ padding:1rem 1.1rem; margin-bottom:1rem; display:flex; flex-direction:column; gap:.7rem; }
+.search{
+  width:100%;
+  font:inherit; font-size:.92rem;
+  padding:.6rem .8rem;
+  border:1px solid var(--line-strong);
+  border-radius:var(--radius-sm);
+  background:var(--surface-2);
+  color:var(--ink);
+}
+.search:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+.chips{ display:flex; flex-wrap:wrap; gap:.45rem; }
+.chip{
+  font:inherit; font-size:.8rem;
+  padding:.36rem .72rem;
+  border-radius:999px;
+  border:1px solid var(--line-strong);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  cursor:pointer;
+  display:inline-flex; align-items:center; gap:.4rem;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.chip:hover{ border-color:var(--ink-faint); }
+.chip:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+.chip.is-active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.chip__count{ font-family:var(--font-mono); opacity:.75; }
+
+/* ---------- buttons ---------- */
+.actions-row{ display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; }
+.btn{
+  font:inherit; font-size:.83rem; font-weight:700;
+  padding:.55rem .95rem;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--line-strong);
+  background:var(--surface-2);
+  color:var(--ink);
+  cursor:pointer;
+}
+.btn:hover{ border-color:var(--ink-faint); }
+.btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.btn--primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn--primary:hover{ filter:brightness(1.08); border-color:var(--accent); }
+
+/* ---------- month tabs ---------- */
+.monthtabs{
+  position:sticky; top:0; z-index:10;
+  display:flex; gap:.4rem;
+  overflow-x:auto;
+  padding:.6rem;
+  margin-bottom:1.1rem;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+}
+.monthtab{
+  flex:0 0 auto;
+  font:inherit; font-size:.82rem; font-weight:700;
+  padding:.5rem .9rem;
+  border-radius:999px;
+  border:1px solid var(--line-strong);
+  background:var(--surface);
+  color:var(--ink-soft);
+  cursor:pointer;
+  display:flex; align-items:center; gap:.4rem;
+}
+.monthtab__count{ font-family:var(--font-mono); font-weight:400; opacity:.7; }
+.monthtab.is-active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+/* ---------- summary ---------- */
+.summary{ margin-bottom:1.4rem; overflow:hidden; }
+.summary__toggle{
+  width:100%; display:flex; align-items:center; gap:.55rem;
+  font:inherit; font-size:.9rem; font-weight:700; color:var(--green);
+  background:none; border:none; padding:.9rem 1.1rem; cursor:pointer; text-align:left;
+}
+.summary__toggle:focus-visible{ outline:2px solid var(--green); outline-offset:-2px; }
+.summary__toggle .chev{ margin-left:auto; transition:transform .15s ease; }
+.summary__toggle[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+.summary__panel{ padding:0 1.1rem 1.1rem; }
+.summary__list{ display:flex; flex-direction:column; gap:.5rem; margin-bottom:.8rem; }
+.summary__row{
+  display:flex; justify-content:space-between; gap:1rem;
+  font-size:.86rem; padding:.5rem .7rem;
+  background:var(--surface-2); border:1px solid var(--line); border-radius:var(--radius-sm);
+}
+.summary__row-date{ font-family:var(--font-mono); color:var(--green); flex:0 0 auto; }
+.summary__empty{ font-size:.86rem; color:var(--ink-soft); padding:.3rem 0 .6rem; }
+.summary__hint2{ font-size:.8rem; color:var(--green); }
+
+/* ---------- month section + rows ---------- */
+.month-section{ margin-bottom:1.6rem; scroll-margin-top:3.6rem; }
+.month-heading{ display:flex; align-items:baseline; gap:.6rem; margin-bottom:.6rem; }
+.month-heading h2{ font-size:1.15rem; font-weight:700; margin:0; }
+.month-heading__count{ font-family:var(--font-mono); font-size:.78rem; color:var(--ink-faint); }
+
+.event{
+  display:flex; gap:1rem;
+  padding:1rem; margin-bottom:.65rem;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-left:4px solid var(--neutral);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  transition:border-left-color .15s ease, opacity .15s ease;
+}
+.event[data-status="green"]{ border-left-color:var(--green); }
+.event[data-status="amber"]{ border-left-color:var(--amber); }
+.event[data-status="red"]{ border-left-color:var(--red); opacity:.72; }
+
+.event__date{ flex:0 0 3.7rem; font-family:var(--font-mono); text-align:center; padding-top:.1rem; }
+.event__date-day{ display:block; font-size:1rem; font-weight:700; line-height:1.1; color:var(--accent); }
+.event__date-month{ display:block; font-size:.66rem; letter-spacing:.06em; color:var(--ink-faint); margin-top:.15rem; }
+
+.event__body{ flex:1 1 auto; min-width:0; }
+.event__tags{ display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.4rem; }
+.tag{
+  font-family:var(--font-mono); font-size:.66rem; letter-spacing:.02em;
+  padding:.18rem .5rem; border-radius:5px;
+  background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--line);
+}
+.event__title{ font-size:1.02rem; font-weight:700; margin:0 0 .3rem; line-height:1.32; }
+.event__meta{ font-size:.83rem; color:var(--ink-soft); margin-bottom:.4rem; display:flex; flex-wrap:wrap; gap:.25rem .5rem; }
+.event__meta .sep{ color:var(--line-strong); }
+
+.event__desc{ font-size:.87rem; color:var(--ink-soft); margin:.3rem 0 0; max-width:72ch; }
+.event__desc.is-clamped{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.event__more{
+  font:inherit; font-size:.8rem; font-weight:700; color:var(--accent);
+  background:none; border:none; padding:.35rem 0 0; cursor:pointer;
+}
+.event__link{ display:inline-flex; align-items:center; gap:.3rem; font-size:.82rem; font-weight:700; color:var(--accent); text-decoration:none; margin-top:.55rem; }
+.event__link:hover{ text-decoration:underline; }
+
+.event__note{ margin-top:.55rem; }
+.event__note-input{
+  width:100%; max-width:34rem; font:inherit; font-size:.82rem;
+  padding:.42rem .6rem; border:1px solid var(--line-strong); border-radius:var(--radius-sm);
+  background:var(--surface-2); color:var(--ink);
+}
+.event__note-input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+.event__note-input::placeholder{ color:var(--ink-faint); }
+
+.event__side{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-end; gap:.4rem; }
+.status-group{ display:flex; flex-direction:column; gap:.35rem; align-items:stretch; }
+.status-btn{
+  width:7.6rem; height:auto;
+  border-radius:999px;
+  border:1.5px solid var(--line-strong); background:var(--surface);
+  cursor:pointer; display:flex; align-items:center; gap:.45rem;
+  padding:.32rem .7rem .32rem .55rem;
+  font:inherit; font-size:.78rem; font-weight:700; color:var(--ink-soft);
+  transition:transform .1s ease, border-color .15s ease, background .15s ease, color .15s ease;
+}
+.status-btn:hover{ transform:translateY(-1px); }
+.status-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.status-btn__dot{ width:.62rem; height:.62rem; border-radius:50%; flex:0 0 auto; }
+.status-btn[data-color="green"] .status-btn__dot{ background:var(--green); }
+.status-btn[data-color="amber"] .status-btn__dot{ background:var(--amber); }
+.status-btn[data-color="red"] .status-btn__dot{ background:var(--red); }
+.status-btn.is-on{ border-width:2px; }
+.status-btn.is-on[data-color="green"]{ border-color:var(--green); background:var(--green-bg); color:var(--green); }
+.status-btn.is-on[data-color="amber"]{ border-color:var(--amber); background:var(--amber-bg); color:var(--amber); }
+.status-btn.is-on[data-color="red"]{ border-color:var(--red); background:var(--red-bg); color:var(--red); }
+
+.empty{ text-align:center; color:var(--ink-soft); padding:3rem 1rem; font-size:.95rem; }
+
+.foot{ margin-top:2.5rem; padding-top:1rem; border-top:1px solid var(--line); font-size:.78rem; color:var(--ink-faint); }
+
+@media (max-width:760px){
+  .event{ flex-wrap:wrap; }
+  .event__date{ flex:0 0 auto; text-align:left; }
+  .event__side{ flex:1 1 100%; flex-direction:row; align-items:center; justify-content:space-between; margin-top:.4rem; }
+  .status-group{ flex-direction:row; flex-wrap:wrap; width:100%; }
+  .status-btn{ width:auto; flex:1 1 auto; justify-content:center; }
+  .actions-row{ flex-direction:column; align-items:stretch; }
+  .actions-row .btn{ width:100%; text-align:center; }
+}
+
+</style>
+</head>
+<body>
+<div class="topband">
+  <div class="topband__inner">
+    <p class="eyebrow">Отраслевые мероприятия · 2026</p>
+    <h1>Календарь мероприятий 2026</h1>
+    <p class="topband__lead">Форумы, выставки и конференции для отрасли. Отметьте цветом каждое мероприятие: пойду, уточнить или не пойду.</p>
+    <p class="topband__meta">Данные актуальны на 25 августа 2026 · всего 29 мероприятий</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="kpis" id="kpis" role="group" aria-label="Фильтр по статусу"></div>
+
+  <section class="panel toolbar">
+    <input type="search" id="search" class="search" placeholder="Поиск по названию, городу, теме…" aria-label="Поиск мероприятий">
+    <div class="chips" id="categoryChips" role="group" aria-label="Фильтр по тематике"></div>
+  </section>
+
+  <nav class="monthtabs" id="monthTabs" aria-label="Навигация по месяцам"></nav>
+  <section class="panel summary" id="summarySection">
+    <button class="summary__toggle" id="summaryToggle" aria-expanded="false">
+      <span id="summaryToggleText">Что добавить в календарь</span>
+      <svg class="chev" width="14" height="14" viewBox="0 0 14 14"><path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="summary__panel" id="summaryPanel" hidden>
+      <div class="summary__list" id="summaryList"></div>
+      <div class="actions-row">
+        <button class="btn btn--primary" id="copyListBtn">Скопировать список</button>
+        <span class="summary__hint2" id="copyHint" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <div id="sections"></div>
+  <p class="empty" id="emptyState" hidden>Ничего не найдено — попробуйте изменить фильтр или поиск.</p>
+
+  <footer class="foot">
+    <span id="footNote"></span>
+  </footer>
+</div>
+
+<script>
+const DATA = [{"id": "ev1", "num": 1, "title": "V Всероссийский форум HR Life", "dateStart": "2026-08-26", "dateEnd": "2026-08-27", "location": "Москва, \"Сущевский Сафмар\"", "topics": ["HR", "управление персоналом"], "category": "HR", "format": "Офлайн/запись", "description": "Посвящен трем главным темам: благополучию сотрудников (well-being), развитию корпоративной культуры и внутренним коммуникациям в компаниях. Мероприятие создано для обмена опытом между специалистами по управлению персоналом", "link": "https://www.mk-conference.ru/hrlife?utm_source=chatgpt.com#rec2087773981"}, {"id": "ev2", "num": 2, "title": "ОТДЫХ Leisure 2026 — 32-й Международный форум-выставка по туризму", "dateStart": "2026-09-02", "dateEnd": "2026-09-04", "location": "Москва, «Тимирязев Центр»", "topics": ["Гостеприимство", "туризм", "глэмпинг", "санаторно-курортный отдых"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Крупнейший в России B2B-форум индустрии туризма и гостеприимства. Деловая программа для отельеров, владельцев глэмпингов и санаториев. Презентации турпродуктов, нетворкинг.", "link": "https://tourismexpo.ru/"}, {"id": "ev3", "num": 3, "title": "Секреты отельера", "dateStart": "2026-09-08", "dateEnd": "2026-09-08", "location": "Москва", "topics": ["Управление гостиницей", "гостеприимство", "HoReCa"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Главные темы и направления форума: Тренды и новинки оснащения отелей и апартаментов. Эффективный маркетинг и рост продаж в гостиничном бизнесе. Разбор реальных бизнес-кейсов и управление финансами. Обсуждение спроса и будущего регионального рынка туризмаПрофессиональный нетворкинг и встречи экспертов", "link": "https://hoteliersecret.pro/moscow#rec2402400741"}, {"id": "ev4", "num": 4, "title": "Бизнес-завтрак от Hospitality Guide", "dateStart": "2026-09-08", "dateEnd": "2026-09-08", "location": "Санкт-Петербург, отель «Санкт-Петербург» 4*", "topics": ["Гостеприимство", "продвижение отельных проектов", "маркетинг"], "category": "Туризм и гостеприимство", "format": "Офлайн, бизнес-завтрак", "description": "Обсуждение эффективных каналов продвижения для отельных проектов. Организатор — Best Event Group / деловой портал Hospitality Guide.", "link": "https://besteventgroup.ru/calendar"}, {"id": "ev5", "num": 5, "title": "АЗО Форум по маркетингу и продажам", "dateStart": "2026-09-21", "dateEnd": "2026-09-22", "location": "Москва & Онлайн, отель Cosmos Selection 5* (аэропорт Шереметьево)", "topics": ["Маркетинг", "продажи"], "category": "Маркетинг и продажи", "format": "Офлайн", "description": "Главное ежегодное отраслевое событие для владельцев загородных отелей, управляющих и специалистов сферы гостеприимства.", "link": "https://azo-hotels.com/marketing#proga"}, {"id": "ev6", "num": 6, "title": "BUSINESS FORCE FORUM 2026", "dateStart": "2026-09-22", "dateEnd": "2026-09-22", "location": "Москва", "topics": ["Менеджмент", "продажи", "маркетинг", "ИИ"], "category": "Менеджмент и стратегия", "format": "Офлайн/запись", "description": "Главные темы форумаИскусственный интеллект и ИТ: внедрение нейросетей, ИИ-агентов и автоматизация бизнес-процессов в маркетинге и управлении.Стратегии продвижения: работа с контентом в условиях перегрузки информацией, цифровой PR и развитие личного бренда.Продажи и команды: настройка CRM и ERP систем, построение сильных управленческих команд и новые техники переговоров.Клиентский опыт: управление лояльностью (CJM) и создание эффективных систем сервиса.", "link": "https://force-forum.ru/#pop6"}, {"id": "ev7", "num": 7, "title": "XIX Всероссийский Форум HR Days", "dateStart": "2026-09-22", "dateEnd": "2026-09-23", "location": "Москва, \"Сущевский Сафмар\"", "topics": ["HR", "управление персоналом"], "category": "HR", "format": "Офлайн/запись", "description": "Посвящен актуальным практикам подбора, оценки, адаптации и удержания сотрудников с акцентом на реальные бизнес-кейсы. Мероприятие традиционно делится на два тематических дня: массовый (линейный) персонал и современные методы оценки персонала", "link": "https://www.mk-conference.ru/hrdaysseptember#rec2094822821"}, {"id": "ev8", "num": 8, "title": "Форум девелопмент БУДУЩЕГО", "dateStart": "2026-09-23", "dateEnd": "2026-09-23", "location": "Москва", "topics": ["Недвижимость"], "category": "Недвижимость и строительство", "format": "Офлайн", "description": "главный ежегодный московский форум по недвижимости от Московский Бизнес Клуб, посвященный долгосрочным трендам рынка, внедрению искусственного интеллекта в продажи и строительные процессы, а также стратегии создания комфортных городов через 10 лет.", "link": "https://mbkforum.ru/?utm_source=chatgpt.com#about"}, {"id": "ev9", "num": 9, "title": "I Всероссийский конгресс с международным участием Здоровое питание – путь к здоровью нации", "dateStart": "2026-09-23", "dateEnd": "2026-09-24", "location": "Минводы", "topics": ["Здоровье", "санаторно-курортная отрасль"], "category": "Здоровье", "format": null, "description": "Цель конгресса — межотраслевая консолидация для освещения важности системного подхода в формировании правильных пищевых привычек у пациентов и реализации принципов здорового питания в санаторно-курортных организациях.", "link": "https://healthfoodcongress.ru/"}, {"id": "ev10", "num": 10, "title": "Образовательный форум «Стратегия и тактика для бизнеса»", "dateStart": "2026-09-24", "dateEnd": "2026-09-24", "location": "Екатеринбург, Креативный кластер «Домна» (ул. Вайнера, 16)", "topics": ["Стратегическое планирование", "управление бизнесом в условиях неопределённости", "ИИ в продажах и управлении", "HR"], "category": "Менеджмент и стратегия", "format": "Офлайн + Онлайн", "description": "Образовательный форум для предпринимателей и управленческих команд: анализ рынка на 2026-2027 годы, стратегические решения и точки роста бизнеса. Спикеры — консалтинговая компания АРБ Про (Сергей Макшанов и команда). Организатор — Центр Бизнес-Образования (ЦБО) совместно со Свердловским областным фондом поддержки предпринимательства.", "link": "https://cbo.ru/programs/conferences-forums/strategiya-i-taktika-dlya-biznesa/"}, {"id": "ev11", "num": 11, "title": "VII Форум АОТРФ «Инвестиции в развитие здоровой страны. Цифры. Факты»", "dateStart": "2026-09-29", "dateEnd": "2026-09-30", "location": "Москва", "topics": ["Санаторно-курортный комплекс", "инвестиции", "оздоровительное гостеприимство"], "category": "Санаторно-курортная отрасль", "format": "Офлайн", "description": "Все аспекты управления здравницей: аналитика, экспертные прогнозы, технологии и внедрения. Формирование актуальной повестки индустрии оздоровительного гостеприимства.", "link": "https://aotrf.ru/top100/forum2026/"}, {"id": "ev12", "num": 12, "title": "100+ TechnoBuild 2026 — 13-й Международный строительный форум", "dateStart": "2026-09-29", "dateEnd": "2026-10-02", "location": "Екатеринбург, МВЦ «Екатеринбург-Экспо»", "topics": ["Строительство", "BIM", "девелопмент", "дизайн интерьеров"], "category": "Недвижимость и строительство", "format": "Офлайн", "description": "Проектирование, строительство и эксплуатация зданий, энергоэффективность, «зеленое» строительство, BIM-проектирование, городская среда, дизайн интерьеров.", "link": "https://forum-100.ru/vystavka/"}, {"id": "ev13", "num": 13, "title": "XVI Конференция «Гостеприимный бизнес»", "dateStart": "2026-10-01", "dateEnd": "2026-10-01", "location": "Москва", "topics": ["Гостеприимство", "оздоровление", "продажи", "маркетинг", "автоматизация"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Профессиональное отраслевое мероприятие для специалистов сферы гостиничного и ресторанного бизнеса, экспертов сегмента HoReCa, владельцев и управляющих отелей.", "link": "https://globalhospitalityclub.ru/?utm_source=chatgpt.com"}, {"id": "ev14", "num": 14, "title": "Санкур-эволюция 2026 (III Евразийский форум)", "dateStart": "2026-10-07", "dateEnd": "2026-10-09", "location": "Екатеринбург, Деловой Выставочный Центр (ул. Куйбышева, 44А/1)", "topics": ["Санаторно-курортная отрасль", "управление здравницами"], "category": "Санаторно-курортная отрасль", "format": "Офлайн", "description": "Евразийский форум для инноваторов курортной отрасли, сферы оздоровления и гостеприимства. Привлечение гостей: новые поколения — новые смыслы.", "link": "http://sankurforum.ru/"}, {"id": "ev15", "num": 15, "title": "Форум Общепит-2026 — Первый форум по экономике и организации безопасного производства кулинарной продукции", "dateStart": "2026-10-07", "dateEnd": "2026-10-08", "location": "Москва, отель DoubleTree by Hilton Moscow — Vnukovo Airport 4*", "topics": ["F&B", "общественное питание", "ХАССП", "пищевая безопасность", "фабрики-кухни", "детское и корпоративное питание"], "category": "Общественное питание (F&B)", "format": "Офлайн + Онлайн", "description": "Форум для собственников и руководителей предприятий общепита, ресторанных сетей, фабрик-кухонь и операторов корпоративного/детского питания: экономика и безопасность производства, ХАССП, изменения СанПиН-2027, проверки Роспотребнадзора. Включает церемонию Международной премии пищевой безопасности «Общепит» и учебный аудит ХАССП на площадке отеля-партнёра. Организатор — НЦСЭ «ХорекаЭкспертГрупп» (Ольга Пасько) и Международная ассоциация пищевой безопасности.", "link": "https://experthoreca.ru/forum-obshepit/"}, {"id": "ev16", "num": 16, "title": "VIII Конференция «Загородные отели: управление, маркетинг, сервис»", "dateStart": "2026-10-13", "dateEnd": "2026-10-14", "location": "Санкт-Петербург (точная площадка уточняется)", "topics": ["Загородные отели", "курорты", "глэмпинги", "управление", "маркетинг", "сервис", "SPA/wellness в загородных отелях", "инвестиции"], "category": "Туризм и гостеприимство", "format": "Офлайн (конференция + стратегические сессии)", "description": "Ежегодная профильная конференция для собственников и управляющих загородных отелей, санаториев и глэмпингов. Организатор — Best Event Group.", "link": "https://zagorodconf.ru/"}, {"id": "ev17", "num": 17, "title": "«Море технологий для вашего ресторана и отеля»", "dateStart": "2026-10-15", "dateEnd": "2026-10-16", "location": "Москва", "topics": ["IT", "автоматизация HoReCa"], "category": "IT и автоматизация", "format": "Офлайн", "description": "Ежегодная конференция, знакомящая профессионалов ресторанного и гостиничного дела с IT-технологиями. Автоматизация процессов и увеличение прибыли.", "link": "https://morensk.aqba.ru/"}, {"id": "ev18", "num": 18, "title": "ЭФФЕКТИВНОЕ УПРАВЛЕНИЕ САНАТОРНО-КУРОРТНЫМИ И ОЗДОРОВИТЕЛЬНЫМИ УЧРЕЖДЕНИЯМИ", "dateStart": "2026-10-19", "dateEnd": "2026-10-30", "location": "Сочи", "topics": ["Санаторно-курортная отрасль"], "category": "Санаторно-курортная отрасль", "format": null, "description": "Программа подготовки лидеров нового типа современной высокотехнологичной и инновационной организации в санаторно-курортной отрасли и индустрии здоровья", "link": "https://sancur.tilda.ws/intensivsochi"}, {"id": "ev19", "num": 19, "title": "ПИР Экспо 2026", "dateStart": "2026-10-26", "dateEnd": "2026-10-29", "location": "Москва, «Крокус Экспо»", "topics": ["Гостеприимство", "HoReCa"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Ежегодная консолидированная платформа: производители и поставщики продукции, решений и услуг для сектора гостеприимства. Крупнейшее B2B-событие индустрии.", "link": "https://pirexpo.com/"}, {"id": "ev20", "num": 20, "title": "GOLDEN SWIC — XIII Международный Конгресс СПА и Веллнесс", "dateStart": "2026-10-31", "dateEnd": "2026-11-02", "location": "Нижний Новгород, Marins Park Hotel", "topics": ["SPA", "wellness", "индустрия красоты и здоровья", "инвестиции в spa-проекты"], "category": "SPA и wellness", "format": "Офлайн", "description": "Международный конгресс для владельцев и директоров SPA-отелей, wellness-центров, клиник и курортов, а также инвесторов и девелоперов spa/wellness-проектов. Проводится с 2014 года.", "link": "https://spaandwellnesscongress.com/"}, {"id": "ev21", "num": 21, "title": "HI-TECH BUILDING 2026", "dateStart": "2026-11-11", "dateEnd": "2026-11-11", "location": "Санкт-Петербург", "topics": ["автоматизация недвижимости", "цифровые здания"], "category": "Недвижимость и строительство", "format": "Офлайн", "description": "Главное российское профессиональное мероприятие, посвященное автоматизации зданий, цифровой трансформации жилой и коммерческой недвижимости, а также технологиям «умный дом» и энергосбережения", "link": "https://www.hitechbuilding.ru/"}, {"id": "ev22", "num": 22, "title": "Ruviera Hotel Business Week 2026", "dateStart": "2026-11-11", "dateEnd": "2026-11-13", "location": "Сочи / Сириус", "topics": ["Гостеприимство", "инвестиции в отели"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Неделя гостиничного бизнеса в Сириусе и Сочи. Все аспекты для отельеров и гостиничных инвесторов. Идеальная площадка для отраслевого нетворкинга.", "link": "https://ruviera.ru/"}, {"id": "ev23", "num": 23, "title": "ИИ КОНФА 2026 — Практическая конференция по нейросетям и искусственному интеллекту в бизнесе", "dateStart": "2026-11-16", "dateEnd": "2026-11-16", "location": "Москва, Кластер «Ломоносов» (Раменский бульвар, д.1)", "topics": ["ИИ в бизнесе", "ИИ в HR", "ИИ в маркетинге и продажах", "ИИ для руководителей", "автоматизация", "цифровая трансформация"], "category": "IT и автоматизация", "format": "Офлайн", "description": "Практическая конференция по применению ИИ и нейросетей в бизнесе: рабочие инструменты и реальные кейсы. 6 залов по трекам — ИИ в HR и работе с командами, ИИ для руководителей, ИИ в маркетинге и продажах, ИИ для создания контента, ИИ для личной эффективности. Выставка ИИ-решений, мастер-классы, нетворкинг.", "link": "https://ai-confa.ru/"}, {"id": "ev24", "num": 24, "title": "Инвест-конференция «Инвестиционный климат отельного бизнеса»", "dateStart": "2026-11-17", "dateEnd": "2026-11-17", "location": "место проведения уточняется", "topics": ["Инвестиции в отельный бизнес", "доходность", "форматы и концепции"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Про доходность, привлечение инвестиций, прибыльные форматы и концепции в отельном бизнесе. Организатор — Best Event Group.", "link": "https://besteventgroup.ru/calendar"}, {"id": "ev25", "num": 25, "title": "Моделирование здоровья", "dateStart": "2026-11-19", "dateEnd": "2026-11-20", "location": "Москва", "topics": ["Здоровье"], "category": "Здоровье", "format": "Офлайн + прямой эфир", "description": "Мы популяризируем превентивные стратегии и интегративный вектор в медицине, делаем моделирование здоровья для профессионального сообщества «модным» и «стильным», сочетая научную строгость с привлекательной эстетикой самого процессаКонференция подобна модному показу в мире здоровья — демонстрирует новейшие идеи и подходы в профилактической и антивозрастной медицине, которые становятся ориентирами для медиков и общества в целом", "link": "https://zdravmodel.ru/model"}, {"id": "ev26", "num": 26, "title": "Hospitality Beyond Future 2026", "dateStart": "2026-11-23", "dateEnd": "2026-11-24", "location": "Москва, Radisson Collection Hotel Moscow", "topics": ["Гостеприимство", "HoReCa"], "category": "Туризм и гостеприимство", "format": "Офлайн", "description": "Основные направления форума: Экономика и рост: поиск новых путей развития и финансовых решений для отелей. Операционная деятельность: улучшение внутренних процессов и работы команды. Девелопмент: создание и обновление гостиничных объектов. Технологии и инновации: внедрение цифровых решений и искусственного интеллекта в отельном бизнесе.", "link": "https://hotel-forum.biz/"}, {"id": "ev27", "num": 27, "title": "MedTravelExpo / Российская неделя здравоохранения 2026", "dateStart": "2026-12-07", "dateEnd": "2026-12-10", "location": "Москва, ЦВК «Экспоцентр»", "topics": ["Здравоохранение", "медицинский и оздоровительный туризм"], "category": "Здоровье", "format": "Офлайн", "description": "Выставка медицинских и оздоровительных услуг, технологий оздоровления и лечения в России и за рубежом. В рамках Международного научно-практического форума «Российская неделя здравоохранения».", "link": "https://www.mte-expo.ru/"}, {"id": "ev28", "num": 28, "title": "Базовые стратегии 2027 (ЦБО)", "dateStart": "2026-12-11", "dateEnd": "2026-12-11", "location": "Екатеринбург", "topics": ["Стратегия", "бизнес-планирование"], "category": "Менеджмент и стратегия", "format": "Офлайн", "description": "Источники вдохновения, ветер перемен и конструктив. Как расти в 2027 году? Программа Центра Бизнес-Образования.", "link": "https://cbo.ru/program/bazovye-strategii-2027-ekaterinburg"}, {"id": "ev29", "num": 29, "title": "III Премия Hospitality People 2026", "dateStart": "2026-12-11", "dateEnd": "2026-12-11", "location": "Санкт-Петербург, GRAND HOTEL EMERALD 5*", "topics": ["Гостеприимство", "признание профессионалов отрасли", "нетворкинг"], "category": "Туризм и гостеприимство", "format": "Офлайн, премия/гала-мероприятие", "description": "Ежегодная премия для признания профессионалов индустрии гостеприимства, учреждена деловым порталом Hospitality Guide. Третья по счёту премия.", "link": "https://hospitalitypeople.ru/"}];
+(function(){
+  "use strict";
+
+  const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const MONTHS_NOM = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const MONTHS_ABBR = ['ЯНВ','ФЕВ','МАР','АПР','МАЙ','ИЮН','ИЮЛ','АВГ','СЕН','ОКТ','НОЯ','ДЕК'];
+  const MONTHS_TAB = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  const STORAGE_KEY = 'events-dashboard-2026-status';
+
+  // Общее хранилище отметок — бин на JSONBin.io (jsonbin.io), чтобы отметки были общими для всех.
+  const BIN_ID = '6a8fbe41da38895dfe164e15';
+  const MASTER_KEY = '$2a$10$m.6vD3zwch6Lwi1QEMlJlOs2WvQF7I6k35UJF5APnPJLICFaNDBCi';
+  const readUrl = () => `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+  const writeUrl = () => `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+  const BLOB_ID = BIN_ID; // оставлено для минимальных изменений остального кода (проверки "включена ли синхронизация")
+  const SYNC_POLL_MS = 20000;
+
+  let statuses = {};
+  let statusFilter = 'all';
+  let activeCategories = new Set();
+  let searchQuery = '';
+
+  const els = {
+    kpis: document.getElementById('kpis'),
+    categoryChips: document.getElementById('categoryChips'),
+    monthTabs: document.getElementById('monthTabs'),
+    sections: document.getElementById('sections'),
+    empty: document.getElementById('emptyState'),
+    search: document.getElementById('search'),
+    summaryToggle: document.getElementById('summaryToggle'),
+    summaryToggleText: document.getElementById('summaryToggleText'),
+    summaryPanel: document.getElementById('summaryPanel'),
+    summaryList: document.getElementById('summaryList'),
+    copyListBtn: document.getElementById('copyListBtn'),
+    copyHint: document.getElementById('copyHint'),
+    footNote: document.getElementById('footNote'),
+  };
+
+  /* ---------------- date helpers ---------------- */
+  function parseISO(iso){ const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); }
+  function monthKey(iso){ return iso.slice(0,7); }
+  function formatRange(startISO, endISO){
+    const s = parseISO(startISO), e = parseISO(endISO);
+    if (startISO === endISO) return `${s.getDate()} ${MONTHS_GEN[s.getMonth()]}`;
+    if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear())
+      return `${s.getDate()}\u2013${e.getDate()} ${MONTHS_GEN[s.getMonth()]}`;
+    return `${s.getDate()} ${MONTHS_GEN[s.getMonth()]} \u2013 ${e.getDate()} ${MONTHS_GEN[e.getMonth()]}`;
+  }
+  function badgeParts(startISO, endISO){
+    const s = parseISO(startISO), e = parseISO(endISO);
+    const dayLabel = (startISO === endISO) ? `${s.getDate()}` : `${s.getDate()}\u2013${e.getDate()}`;
+    return { dayLabel, monthAbbr: MONTHS_ABBR[s.getMonth()] };
+  }
+
+  function getStatus(id){ return (statuses[id] && statuses[id].status) || null; }
+  function getNote(id){ return (statuses[id] && statuses[id].note) || ''; }
+
+  /* ---------------- storage layer ---------------- */
+  function saveLocal(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(statuses)); }catch(e){ /* ignore */ }
+  }
+
+  function setSyncStatus(state){
+    if (!els.footNote) return;
+    const map = {
+      none: 'Общий доступ не настроен — отметки видны только в этом браузере.',
+      loading: 'Загружаем общие отметки…',
+      ok: 'Отметки общие для всех, кто открывает эту страницу.',
+      error: 'Не удалось связаться с общим хранилищем — показаны последние сохранённые отметки.',
+    };
+    els.footNote.textContent = map[state] || '';
+  }
+
+  async function fetchRemote(){
+    const res = await fetch(readUrl(), {
+      headers: { 'Accept': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Meta': 'false' },
+    });
+    if (!res.ok) throw new Error('GET failed: ' + res.status);
+    const data = await res.json();
+    return (data && typeof data === 'object' && !Array.isArray(data)) ? data : {};
+  }
+
+  async function pushRemote(data){
+    const res = await fetch(writeUrl(), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Master-Key': MASTER_KEY,
+        'X-Bin-Versioning': 'false',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('PUT failed: ' + res.status);
+  }
+
+  // Сливает удалённое состояние с локальным: для каждого мероприятия побеждает
+  // та запись, у которой позже updatedAt. Это защищает от потери только что
+  // поставленной отметки, если она ещё не успела уйти на сервер (задержка
+  // сохранения 400 мс) в момент перезагрузки страницы.
+  function mergeStatuses(remote, local){
+    const merged = {};
+    const ids = new Set([...Object.keys(remote || {}), ...Object.keys(local || {})]);
+    ids.forEach(id => {
+      const r = remote && remote[id];
+      const l = local && local[id];
+      if (!r){ merged[id] = l; return; }
+      if (!l){ merged[id] = r; return; }
+      merged[id] = ((l.updatedAt || 0) >= (r.updatedAt || 0)) ? l : r;
+    });
+    return merged;
+  }
+
+  let saveTimer = null;
+  function persist(){
+    saveLocal();
+    if (!BLOB_ID) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      pushRemote(statuses).then(() => setSyncStatus('ok')).catch(() => setSyncStatus('error'));
+    }, 400);
+  }
+
+  async function loadInitialState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      statuses = raw ? JSON.parse(raw) : {};
+    }catch(e){ statuses = {}; }
+
+    if (!BLOB_ID){ setSyncStatus('none'); return; }
+
+    setSyncStatus('loading');
+    try{
+      const remote = await fetchRemote();
+      statuses = mergeStatuses(remote, statuses);
+      saveLocal();
+      setSyncStatus('ok');
+    }catch(e){
+      setSyncStatus('error');
+    }
+  }
+
+  function isTypingInNote(){
+    const a = document.activeElement;
+    return !!(a && a.classList && a.classList.contains('event__note-input'));
+  }
+
+  function startBackgroundSync(){
+    if (!BLOB_ID) return;
+    setInterval(async () => {
+      if (isTypingInNote()) return;
+      try{
+        const remote = await fetchRemote();
+        const merged = mergeStatuses(remote, statuses);
+        if (JSON.stringify(merged) !== JSON.stringify(statuses)){
+          statuses = merged;
+          saveLocal();
+          render();
+        }
+        setSyncStatus('ok');
+      }catch(e){
+        setSyncStatus('error');
+      }
+    }, SYNC_POLL_MS);
+  }
+
+  function setStatus(id, color){
+    const current = getStatus(id);
+    const next = current === color ? null : color;
+    statuses[id] = statuses[id] || {};
+    statuses[id].status = next;
+    statuses[id].updatedAt = Date.now();
+    persist();
+    render();
+  }
+  function setNote(id, text){
+    statuses[id] = statuses[id] || {};
+    statuses[id].note = text;
+    statuses[id].updatedAt = Date.now();
+    persist();
+  }
+
+  /* ---------------- filters ---------------- */
+  function categories(){ return [...new Set(DATA.map(e => e.category))]; }
+
+  function matchesFilters(ev){
+    if (statusFilter === 'none'){ if (getStatus(ev.id)) return false; }
+    else if (statusFilter !== 'all'){ if (getStatus(ev.id) !== statusFilter) return false; }
+    if (activeCategories.size && !activeCategories.has(ev.category)) return false;
+    if (searchQuery){
+      const hay = (ev.title + ' ' + ev.location + ' ' + ev.topics.join(' ') + ' ' + ev.category).toLowerCase();
+      if (!hay.includes(searchQuery)) return false;
+    }
+    return true;
+  }
+
+  function counts(){
+    const c = { all: DATA.length, green: 0, amber: 0, red: 0, none: 0 };
+    DATA.forEach(ev => {
+      const s = getStatus(ev.id);
+      if (s === 'green') c.green++;
+      else if (s === 'amber') c.amber++;
+      else if (s === 'red') c.red++;
+      else c.none++;
+    });
+    return c;
+  }
+
+  /* ---------------- rendering ---------------- */
+  function renderKPIs(){
+    const c = counts();
+    const defs = [
+      {key:'all', label:'Всего', count:c.all},
+      {key:'green', label:'Пойду', count:c.green},
+      {key:'amber', label:'Уточнить', count:c.amber},
+      {key:'red', label:'Не пойду', count:c.red},
+      {key:'none', label:'Без отметки', count:c.none},
+    ];
+    els.kpis.innerHTML = '';
+    defs.forEach(d => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'kpi' + (statusFilter === d.key ? ' is-active' : '');
+      btn.dataset.key = d.key;
+      btn.setAttribute('aria-pressed', statusFilter === d.key ? 'true' : 'false');
+      btn.innerHTML = `<span class="kpi__num">${d.count}</span><span class="kpi__label">${d.label}</span>`;
+      btn.addEventListener('click', () => { statusFilter = d.key; render(); });
+      els.kpis.appendChild(btn);
+    });
+  }
+
+  function renderCategoryChips(){
+    const cats = categories();
+    els.categoryChips.innerHTML = '';
+    cats.forEach(cat => {
+      const n = DATA.filter(e => e.category === cat).length;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip' + (activeCategories.has(cat) ? ' is-active' : '');
+      btn.setAttribute('aria-pressed', activeCategories.has(cat) ? 'true' : 'false');
+      btn.innerHTML = `${cat} <span class="chip__count">${n}</span>`;
+      btn.addEventListener('click', () => {
+        if (activeCategories.has(cat)) activeCategories.delete(cat);
+        else activeCategories.add(cat);
+        render();
+      });
+      els.categoryChips.appendChild(btn);
+    });
+  }
+
+  function allMonthKeys(){
+    const keys = [...new Set(DATA.map(e => monthKey(e.dateStart)))];
+    keys.sort();
+    return keys;
+  }
+
+  function renderMonthTabs(filtered){
+    const keys = allMonthKeys();
+    const filteredCountByMonth = {};
+    filtered.forEach(e => {
+      const k = monthKey(e.dateStart);
+      filteredCountByMonth[k] = (filteredCountByMonth[k] || 0) + 1;
+    });
+    els.monthTabs.innerHTML = '';
+    keys.forEach(k => {
+      const [y,m] = k.split('-').map(Number);
+      const count = filteredCountByMonth[k] || 0;
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'monthtab';
+      tab.dataset.month = k;
+      tab.style.opacity = count ? '1' : '.5';
+      tab.innerHTML = `${MONTHS_TAB[m-1]} <span class="monthtab__count">${count}</span>`;
+      tab.addEventListener('click', () => {
+        const target = document.getElementById('month-' + k);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      els.monthTabs.appendChild(tab);
+    });
+  }
+
+  function eventRow(ev){
+    const status = getStatus(ev.id);
+    const { dayLabel, monthAbbr } = badgeParts(ev.dateStart, ev.dateEnd);
+    const note = getNote(ev.id);
+
+    const row = document.createElement('article');
+    row.className = 'event';
+    row.dataset.status = status || '';
+
+    const linkHost = (() => { try { return new URL(ev.link).hostname.replace(/^www\./,''); } catch(e){ return ev.link; } })();
+
+    row.innerHTML = `
+      <div class="event__date">
+        <span class="event__date-day">${dayLabel}</span>
+        <span class="event__date-month">${monthAbbr}</span>
+      </div>
+      <div class="event__body">
+        <div class="event__tags">
+          <span class="tag">${ev.category}</span>
+          ${ev.format ? `<span class="tag">${ev.format}</span>` : ''}
+        </div>
+        <h3 class="event__title">${ev.title}</h3>
+        <div class="event__meta">
+          <span>${ev.location}</span>
+          <span class="sep">·</span>
+          <span>${ev.topics.join(', ')}</span>
+        </div>
+        <p class="event__desc is-clamped">${ev.description}</p>
+        <button type="button" class="event__more">Показать полностью</button>
+        <div>
+          <a class="event__link" href="${ev.link}" target="_blank" rel="noopener">Сайт мероприятия (${linkHost}) \u2197</a>
+        </div>
+        <div class="event__note">
+          <input type="text" class="event__note-input" placeholder="Заметка (необязательно) — например, что уточнить" value="${note.replace(/"/g,'&quot;')}">
+        </div>
+      </div>
+      <div class="event__side">
+        <div class="status-group" role="group" aria-label="Отметить статус">
+          <button type="button" class="status-btn ${status==='green'?'is-on':''}" data-color="green" aria-pressed="${status==='green'}"><span class="status-btn__dot"></span>Пойду</button>
+          <button type="button" class="status-btn ${status==='amber'?'is-on':''}" data-color="amber" aria-pressed="${status==='amber'}"><span class="status-btn__dot"></span>Уточнить</button>
+          <button type="button" class="status-btn ${status==='red'?'is-on':''}" data-color="red" aria-pressed="${status==='red'}"><span class="status-btn__dot"></span>Не пойду</button>
+        </div>
+      </div>
+    `;
+
+    row.querySelectorAll('.status-btn').forEach(btn => {
+      btn.addEventListener('click', () => setStatus(ev.id, btn.dataset.color));
+    });
+
+    const moreBtn = row.querySelector('.event__more');
+    const desc = row.querySelector('.event__desc');
+    moreBtn.addEventListener('click', () => {
+      const collapsed = desc.classList.toggle('is-clamped');
+      moreBtn.textContent = collapsed ? 'Показать полностью' : 'Свернуть';
+    });
+
+    const noteInput = row.querySelector('.event__note-input');
+    let noteTimer = null;
+    noteInput.addEventListener('input', () => {
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => setNote(ev.id, noteInput.value), 400);
+    });
+
+    return row;
+  }
+
+  function render(){
+    const filtered = DATA.filter(matchesFilters);
+    const sorted = [...filtered].sort((a,b) => a.dateStart.localeCompare(b.dateStart));
+
+    renderKPIs();
+    renderCategoryChips();
+    renderMonthTabs(filtered);
+
+    els.sections.innerHTML = '';
+    els.empty.hidden = sorted.length !== 0;
+
+    const byMonth = new Map();
+    sorted.forEach(ev => {
+      const k = monthKey(ev.dateStart);
+      if (!byMonth.has(k)) byMonth.set(k, []);
+      byMonth.get(k).push(ev);
+    });
+
+    [...byMonth.keys()].sort().forEach(k => {
+      const [y,m] = k.split('-').map(Number);
+      const section = document.createElement('section');
+      section.className = 'month-section';
+      section.id = 'month-' + k;
+      const heading = document.createElement('div');
+      heading.className = 'month-heading';
+      heading.innerHTML = `<h2>${MONTHS_NOM[m-1]} ${y}</h2><span class="month-heading__count">${byMonth.get(k).length} мероприятий</span>`;
+      section.appendChild(heading);
+      byMonth.get(k).forEach(ev => section.appendChild(eventRow(ev)));
+      els.sections.appendChild(section);
+    });
+
+    renderSummary();
+    setupTabObserver();
+  }
+
+  function renderSummary(){
+    const green = DATA.filter(e => getStatus(e.id) === 'green').sort((a,b) => a.dateStart.localeCompare(b.dateStart));
+    els.summaryToggleText.textContent = `Что добавить в календарь (${green.length})`;
+    els.summaryList.innerHTML = '';
+    if (!green.length){
+      els.summaryList.innerHTML = `<p class="summary__empty">Пока ничего не отмечено зелёным.</p>`;
+      return;
+    }
+    green.forEach(ev => {
+      const row = document.createElement('div');
+      row.className = 'summary__row';
+      row.innerHTML = `<span class="summary__row-date">${formatRange(ev.dateStart, ev.dateEnd)}</span><span>${ev.title} — ${ev.location}</span>`;
+      els.summaryList.appendChild(row);
+    });
+  }
+
+  let tabObserver = null;
+  function setupTabObserver(){
+    if (tabObserver) tabObserver.disconnect();
+    const tabs = els.monthTabs.querySelectorAll('.monthtab');
+    const sections = els.sections.querySelectorAll('.month-section');
+    if (!sections.length) return;
+    tabObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){
+          const k = entry.target.id.replace('month-','');
+          tabs.forEach(t => t.classList.toggle('is-active', t.dataset.month === k));
+        }
+      });
+    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+    sections.forEach(s => tabObserver.observe(s));
+  }
+
+  /* ---------------- copy / export / import ---------------- */
+  function copyTextToClipboard(text, onDone, onFail){
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(onDone).catch(() => fallbackCopy(text, onDone, onFail));
+    } else {
+      fallbackCopy(text, onDone, onFail);
+    }
+  }
+  function fallbackCopy(text, onDone, onFail){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      onDone();
+    }catch(e){ onFail(); }
+  }
+
+  function copyList(){
+    const green = DATA.filter(e => getStatus(e.id) === 'green').sort((a,b) => a.dateStart.localeCompare(b.dateStart));
+    if (!green.length){ els.copyHint.textContent = 'Список пуст.'; return; }
+    const text = 'Добавить в календарь:\n' + green.map(ev =>
+      `${formatRange(ev.dateStart, ev.dateEnd)} — ${ev.title} (${ev.location})`
+    ).join('\n');
+    copyTextToClipboard(text,
+      () => { els.copyHint.textContent = 'Скопировано.'; setTimeout(() => els.copyHint.textContent = '', 2500); },
+      () => { els.copyHint.textContent = 'Не удалось скопировать — выделите текст вручную.'; }
+    );
+  }
+
+  /* ---------------- wire up ---------------- */
+  els.search.addEventListener('input', () => { searchQuery = els.search.value.trim().toLowerCase(); render(); });
+
+  els.summaryToggle.addEventListener('click', () => {
+    const expanded = els.summaryToggle.getAttribute('aria-expanded') === 'true';
+    els.summaryToggle.setAttribute('aria-expanded', String(!expanded));
+    els.summaryPanel.hidden = expanded;
+  });
+
+  els.copyListBtn.addEventListener('click', copyList);
+
+  (async function init(){
+    await loadInitialState();
+    render();
+    startBackgroundSync();
+  })();
+})();
+
+</script>
+</body>
+</html>
